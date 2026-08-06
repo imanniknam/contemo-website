@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import ArcPanel from "@/components/ArcPanel";
 import { Button, Field, Check, Modal } from "@/components/ui";
@@ -19,7 +20,21 @@ const QUESTIONS = [
 ];
 
 export default function ProjectForm() {
-  const [brief, setBrief] = useState<Brief>(EMPTY_BRIEF);
+  /* Arriving from a service card on /services: `?c=` preselects نوع پروژه and
+     `?t=` نوع محتوا, so the visitor lands on the form with their choice already
+     made instead of re-picking what they just clicked. */
+  const params = useSearchParams();
+  const preset = useMemo<Brief>(() => {
+    const c = params.get("c");
+    const cat = CATEGORIES.find((x) => x.id === c);
+    if (!cat) return EMPTY_BRIEF;
+    const t = params.get("t");
+    const type = cat.types.find((x) => x.id === t);
+    return { ...EMPTY_BRIEF, category: cat.id, type: type?.id ?? null };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [brief, setBrief] = useState<Brief>(preset);
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<string | null>(null);

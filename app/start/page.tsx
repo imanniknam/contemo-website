@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import PageHero from "@/components/PageHero";
 import { Reveal } from "@/components/motion-primitives";
 import { ProcessRail } from "@/components/ui";
@@ -32,7 +33,11 @@ export default function StartPage() {
             {START.formTitle}
           </h2>
         </Reveal>
-        <ProjectForm />
+        {/* ProjectForm reads ?c= / ?t= from a service card, so it needs a
+            Suspense boundary to stay statically renderable. */}
+        <Suspense fallback={<div className="h-[600px]" aria-hidden />}>
+          <ProjectForm />
+        </Suspense>
       </section>
     </>
   );

@@ -96,9 +96,17 @@ export default function ApplyForm() {
       {/* panel */}
       <div>
         <AnimatePresence mode="wait">
-          <motion.section
+          <motion.form
             key={current.id}
             role="tabpanel"
+            /* A real <form>: it gives Enter-to-submit and lets password
+               managers offer to save the credentials on the third tab, which
+               a bare <div> does not. */
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveTab();
+            }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -114,6 +122,9 @@ export default function ApplyForm() {
                     id={key(f.label)}
                     label={f.label}
                     type={f.type}
+                    autoComplete={
+                      f.type === "password" ? "new-password" : f.label === "نام کاربری" ? "username" : undefined
+                    }
                     required
                     prefix={f.type === "iban" ? "IR" : undefined}
                     error={errorFor(f.label, f.type)}
@@ -125,7 +136,7 @@ export default function ApplyForm() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button onClick={saveTab}>{current.primary}</Button>
+              <Button type="submit">{current.primary}</Button>
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -136,7 +147,7 @@ export default function ApplyForm() {
                 {current.secondary}
               </Button>
             </div>
-          </motion.section>
+          </motion.form>
         </AnimatePresence>
 
         {/* گزینه‌های تأیید */}

@@ -30,10 +30,24 @@ function MenuItem({ item, active }: { item: (typeof MENU)[number]; active: boole
     timer.current = setTimeout(() => setOpen(false), 90);
   };
 
+  /* Scrolling dismisses it. Without this a tooltip can stay pinned when the
+     pointer leaves via a route change or a window blur and the mouseleave
+     never arrives. */
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("scroll", close, { passive: true });
+    window.addEventListener("blur", close);
+    return () => {
+      window.removeEventListener("scroll", close);
+      window.removeEventListener("blur", close);
+    };
+  }, [open]);
+
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   return (
-    <div className="relative" onMouseEnter={show} onMouseLeave={hide}>
+    <div className="relative" onMouseEnter={show} onMouseLeave={hide} onPointerLeave={hide}>
       <Link
         href={item.href}
         onFocus={show}
@@ -62,9 +76,12 @@ function MenuItem({ item, active }: { item: (typeof MENU)[number]; active: boole
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.16 }}
-              className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 w-max max-w-[240px] translate-x-1/2 border border-hairline bg-panel px-3 py-2 text-[12.5px] leading-relaxed text-ink2 shadow-xl"
+              className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 w-max max-w-[250px] translate-x-1/2 border border-hairline bg-panel px-3.5 py-2.5 text-center shadow-xl"
             >
-              {item.tip}
+              <span className="block text-[13px] font-bold text-ink">{item.tip}</span>
+              {item.tipDesc && (
+                <span className="mt-1 block text-[12px] leading-relaxed text-ink3">{item.tipDesc}</span>
+              )}
             </motion.span>
           )}
         </AnimatePresence>
@@ -185,9 +202,12 @@ export default function Nav() {
                   transition={{ delay: 0.04 + i * 0.045, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <Link href={item.href} className="block border-b border-hairline py-4">
-                    <span className="text-xl font-bold">{item.label}</span>
-                    {/* the spec's tooltip text, permanent on touch */}
-                    {item.tip && <span className="mt-1 block text-[13px] text-ink3">{item.tip}</span>}
+                    <span className="flex items-baseline gap-2.5">
+                      <span className="text-xl font-bold">{item.label}</span>
+                      {/* the hover word, permanent on touch — there is no hover here */}
+                      {item.tip && <span className="label text-lift">{item.tip}</span>}
+                    </span>
+                    {item.tipDesc && <span className="mt-1 block text-[13px] text-ink3">{item.tipDesc}</span>}
                   </Link>
                 </motion.div>
               ))}

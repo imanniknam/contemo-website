@@ -99,17 +99,44 @@ export function Services() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {HOME.services.items.map((s, i) => (
           <Reveal key={s.title} delay={i * 0.08}>
-            <ArcPanel corner="tr" radius={24} className="group h-full transition-transform duration-300 hover:-translate-y-1">
-              <div className="flex h-full flex-col p-6">
-                <span className="grid h-12 w-12 place-items-center border border-hairline text-lift transition-colors group-hover:border-core group-hover:text-core">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
-                    {SERVICE_GLYPHS[i]}
-                  </svg>
-                </span>
-                <h3 className="mt-6 text-[17px] font-bold leading-snug">{s.title}</h3>
-                <p className="mt-3 flex-1 text-[14px] leading-loose text-ink2">{s.desc}</p>
-              </div>
-            </ArcPanel>
+            {/* Each card routes straight into the form with نوع پروژه already
+                chosen, so the service you clicked is the one you get. */}
+            <Link
+              href={`/start?c=${s.cat}`}
+              aria-label={`${s.title} — ثبت پروژه`}
+              className="group block h-full focus-visible:outline-none"
+            >
+              <ArcPanel
+                corner="tr"
+                radius={24}
+                className="h-full transition-transform duration-300 group-hover:-translate-y-1 group-focus-visible:-translate-y-1"
+              >
+                <div className="flex h-full flex-col p-6">
+                  <span className="grid h-12 w-12 place-items-center border border-hairline text-lift transition-colors group-hover:border-core group-hover:text-core">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                      {SERVICE_GLYPHS[i]}
+                    </svg>
+                  </span>
+                  <h3 className="mt-6 text-[17px] font-bold leading-snug transition-colors group-hover:text-lift">
+                    {s.title}
+                  </h3>
+                  <p className="mt-3 flex-1 text-[14px] leading-loose text-ink2">{s.desc}</p>
+                  <span className="mt-5 flex items-center gap-2 text-[13px] font-bold text-lift">
+                    ثبت پروژه
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden
+                      className="transition-transform duration-300 group-hover:-translate-x-1"
+                    >
+                      <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+              </ArcPanel>
+            </Link>
           </Reveal>
         ))}
       </div>

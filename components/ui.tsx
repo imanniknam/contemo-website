@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { fa } from "@/lib/fa";
 
@@ -70,6 +70,7 @@ export function Field({
   value,
   onChange,
   prefix,
+  autoComplete,
 }: {
   id: string;
   label: string;
@@ -82,13 +83,36 @@ export function Field({
   value?: string;
   onChange?: (v: string) => void;
   prefix?: string;
+  autoComplete?: string;
 }) {
   const isLatin = ["num", "iban", "email", "password", "tel"].includes(type);
   const inputType = type === "num" || type === "iban" ? "text" : type;
 
+  /* File upload gets its own control.
+     A file input cannot be a controlled React input — `value` is read-only for
+     security — so routing it through the shared `value`/`onChange` pair left it
+     permanently empty. Any form that marked an upload as required could then
+     never validate. This branch keeps the same string contract for the parent
+     (it receives the file names) while the real <input type="file"> stays
+     uncontrolled underneath. */
+  if (type === "file") {
+    return (
+      <FileField
+        id={id}
+        label={label}
+        hint={hint}
+        error={error}
+        required={required}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  }
+
   const shared = {
     id,
     name: id,
+    autoComplete,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": error ? `${id}-err` : hint ? `${id}-hint` : undefined,
     required,
@@ -138,6 +162,152 @@ export function Field({
       )}
 
       {hint && as !== "select" && !error && (
+        <p id={`${id}-hint`} className="mt-2 text-[12.5px] text-ink3">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p id={`${id}-err`} role="alert" className="mt-2 flex items-center gap-1.5 text-[12.5px] text-alert">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+            <path d="M12 7v6M12 16.5v.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   FileField — drop zone with keyboard access.
+
+   The spec asks for uploads in three places (پیوست فایل in متین,
+   فایل‌های مرتبط in ثبت پروژه, تصویر پروفایل in ثبت‌نام کارپذیر). All three
+   share this control so the affordance and the error copy stay identical.
+   ───────────────────────────────────────────── */
+function FileField({
+  id,
+  label,
+  hint,
+  error,
+  required,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [over, setOver] = useState(false);
+  const names = (value ?? "").split("|").filter(Boolean);
+
+  const take = (list: FileList | null) => {
+    if (!list?.length) return;
+    onChange?.(Array.from(list).map((f) => f.name).join("|"));
+  };
+
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 block text-[14px] font-semibold">
+        {label}
+        {required && (
+          <span className="mr-1 text-alert" aria-label="اجباری">
+            *
+          </span>
+        )}
+        {required === false && <span className="mr-2 text-[12px] font-normal text-ink3">(اختیاری)</span>}
+      </label>
+
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          take(e.dataTransfer.files);
+        }}
+        className={`border border-dashed px-5 py-7 text-center transition-colors ${
+          error ? "border-alert" : over ? "border-core bg-core/10" : "border-hairline hover:border-ink3"
+        }`}
+      >
+        <input
+          ref={inputRef}
+          id={id}
+          name={id}
+          type="file"
+          multiple
+          required={required && names.length === 0}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined}
+          onChange={(e) => take(e.target.files)}
+          className="sr-only"
+        />
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden
+          className="mx-auto text-lift"
+        >
+          <path
+            d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+
+        <p className="mt-3 text-[13.5px] text-ink2">
+          فایل را اینجا رها کنید یا{" "}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="font-bold text-lift underline underline-offset-4 hover:text-core"
+          >
+            از سیستم انتخاب کنید
+          </button>
+        </p>
+
+        {names.length > 0 && (
+          <ul className="mt-4 space-y-1.5 text-right">
+            {names.map((n, i) => (
+              <li
+                key={n + i}
+                className="flex items-center justify-between gap-3 border border-hairline bg-panel/60 px-3 py-2"
+              >
+                <span className="truncate text-[13px] text-ink" dir="auto">
+                  {n}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`حذف ${n}`}
+                  onClick={() => {
+                    const next = names.filter((_, k) => k !== i);
+                    onChange?.(next.join("|"));
+                    if (inputRef.current) inputRef.current.value = "";
+                  }}
+                  className="shrink-0 text-[16px] leading-none text-ink3 transition-colors hover:text-alert"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {hint && !error && (
         <p id={`${id}-hint`} className="mt-2 text-[12.5px] text-ink3">
           {hint}
         </p>
