@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import ArcPanel from "@/components/ArcPanel";
 import { Reveal } from "@/components/motion-primitives";
 import { Button } from "@/components/ui";
 import Newsletter from "./Newsletter";
 import { LANTERN } from "@/lib/content";
+import { POSTS } from "@/lib/posts";
 import { fa } from "@/lib/fa";
 
 export const metadata: Metadata = {
@@ -74,17 +76,23 @@ export default function LanternPage() {
               {LANTERN.latestTitle}
             </h2>
             <ul className="divide-y divide-hairline border-y border-hairline">
-              {LANTERN.latest.map((p, i) => (
-                <li key={p.title}>
-                  <a href="#" className="group flex items-start gap-5 py-6 transition-colors hover:bg-panel/40">
+              {POSTS.map((p, i) => (
+                <li key={p.slug}>
+                  <Link
+                    href={`/lantern/${p.slug}`}
+                    className="group flex items-start gap-5 py-6 transition-colors hover:bg-panel/40"
+                  >
                     <span className="mono pt-1 text-[12px] text-ink3">{fa(String(i + 1).padStart(2, "0"))}</span>
                     <span>
                       <h3 className="text-[16px] font-bold leading-snug transition-colors group-hover:text-beacon">
                         {p.title}
                       </h3>
-                      <p className="mt-2 text-[13.5px] text-ink2">{p.desc}</p>
+                      <p className="mt-2 text-[13.5px] text-ink2">{p.excerpt}</p>
+                      <span className="mt-2 block text-[12px] text-ink3">
+                        <time dateTime={p.date}>{p.dateFa}</time> · حدود {fa(p.readingMinutes)} دقیقه مطالعه
+                      </span>
                     </span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -95,12 +103,12 @@ export default function LanternPage() {
               {LANTERN.popularTitle}
             </h2>
             <ol className="space-y-4">
-              {LANTERN.popular.map((p, i) => (
-                <li key={p}>
-                  <a href="#" className="group flex gap-4 text-[14.5px] leading-relaxed">
+              {POSTS.slice(0, 4).map((p, i) => (
+                <li key={p.slug}>
+                  <Link href={`/lantern/${p.slug}`} className="group flex gap-4 text-[14.5px] leading-relaxed">
                     <span className="mono text-[13px] font-bold text-beacon">{fa(i + 1)}</span>
-                    <span className="text-ink2 transition-colors group-hover:text-ink">{p}</span>
-                  </a>
+                    <span className="text-ink2 transition-colors group-hover:text-ink">{p.title}</span>
+                  </Link>
                 </li>
               ))}
             </ol>
