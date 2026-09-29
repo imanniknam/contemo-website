@@ -4,3 +4,6 @@ out/
 *.tsbuildinfo
 .DS_Store
 .env*
+
+# نوشته‌های ثبت‌شده از پنل ادمین
+/data/

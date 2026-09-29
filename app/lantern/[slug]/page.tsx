@@ -5,13 +5,14 @@ import { Fragment } from "react";
 import ArcPanel from "@/components/ArcPanel";
 import ArticleArt from "@/components/lantern/Art";
 import { Button } from "@/components/ui";
-import { POSTS, getPost, type Block } from "@/lib/posts";
+import type { Block } from "@/lib/posts";
+import { getPublicPost, getPublicPosts } from "@/lib/posts-store";
 import { fa } from "@/lib/fa";
 
 const SITE = "https://contemo.ir";
 
-export function generateStaticParams() {
-  return POSTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getPublicPosts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -20,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPublicPost(slug);
   if (!post) return {};
 
   const url = `${SITE}/lantern/${post.slug}`;
@@ -120,7 +121,7 @@ function Body({ blocks }: { blocks: Block[] }) {
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPublicPost(slug);
   if (!post) notFound();
 
   const url = `${SITE}/lantern/${post.slug}`;

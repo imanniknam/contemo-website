@@ -6,7 +6,7 @@ import { Reveal } from "@/components/motion-primitives";
 import { Button } from "@/components/ui";
 import Newsletter from "./Newsletter";
 import { LANTERN } from "@/lib/content";
-import { POSTS } from "@/lib/posts";
+import { getPublicPosts } from "@/lib/posts-store";
 import { fa } from "@/lib/fa";
 
 export const metadata: Metadata = {
@@ -17,7 +17,8 @@ export const metadata: Metadata = {
 /** فانوس is the one surface where the beacon amber is allowed to appear.
  *  Reserving a colour for a single meaning is what lets a reader know where
  *  they are before they read a word. */
-export default function LanternPage() {
+export default async function LanternPage() {
+  const POSTS = await getPublicPosts();
   return (
     <>
       <PageHero title={LANTERN.title} subtitle={LANTERN.subtitle} desc={LANTERN.desc} />
