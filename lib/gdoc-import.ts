@@ -24,12 +24,18 @@ export type ImportedDoc = {
   internalTitles: string[];
 };
 
+const NAMED: Record<string, string> = {
+  laquo: "«", raquo: "»", mdash: "—", ndash: "–", rarr: "→", larr: "←", times: "×", hellip: "…",
+  ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’", middot: "·", bull: "•", copy: "©",
+};
+
 const decode = (s: string) =>
   s
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&zwnj;/g, "‌")
     .replace(/&nbsp;/g, " ")
+    .replace(/&([a-z]+);/gi, (m, n: string) => NAMED[n.toLowerCase()] ?? m)
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
